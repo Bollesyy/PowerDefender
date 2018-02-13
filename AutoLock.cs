@@ -5,34 +5,43 @@ using UnityEngine;
 public class AutoLock : MonoBehaviour {
 
 
-	public GameObject[] enemyObjects;
+	public static GameObject[] enemyObjects;
 	public bool hasPowerUp;
 	public float dropRate = 50f;
 	private GameObject target;
 	private int rand;
+	public int ammoCount;
 
 	void Start(){
+		ammoCount = 5;
 		hasPowerUp = false;
 	}
 
 	void Update () {
+		if (enemyObjects == null) {
+			Debug.Log ("enemies cleared");
+		}
 		if (target == null) {
 			InitializeTarget ();
 		}
 		FindTarget ();
 		if (Input.GetKeyDown("space") && enemyObjects.Length != 0) {
 			DestroyTarget ();
-			DropPowerUp ();
+			ammoCount--;
+			Debug.Log("Ammo Count: " + ammoCount.ToString());
 		}
-		if (hasPowerUp && Input.GetKeyDown("q")) {
+		if (Input.GetKeyDown("q")  && hasPowerUp && enemyObjects.Length != 0) {
 			DestroyAllEnemies ();
 			hasPowerUp = false;
 			Debug.Log ("No more powerUp");
 		}
+		if (ammoCount == 0) {
+			StartCoroutine(Reload ());
+		}
 	}
 
 	void LateUpdate(){
-		enemyObjects = GameObject.FindGameObjectsWithTag ("Enemy"); //Adds each enemy to an array of enemy GameObjects
+		enemyObjects = GameObject.FindGameObjectsWithTag ("EnemyTargets"); //Adds each enemy to an array of enemy GameObjects
 	}
 		
 	void FindTarget(){
@@ -52,6 +61,8 @@ public class AutoLock : MonoBehaviour {
 
 	void DestroyTarget(){
 		Destroy (target);
+		Debug.Log ("Target destroyed");
+		DropPowerUp ();
 	}
 
 	public bool DropPowerUp(){
@@ -68,5 +79,12 @@ public class AutoLock : MonoBehaviour {
 			Destroy (enemyObjects[i]);
 		}
 
+	}
+
+	IEnumerator Reload(){
+		Debug.Log ("Reloading");
+		yield return new WaitForSeconds (2);
+		Debug.Log ("Reloaded");
+		ammoCount = 5;
 	}
 }
